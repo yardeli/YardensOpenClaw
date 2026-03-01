@@ -62,9 +62,70 @@ function spawnClaude(options: ClaudeRunnerOptions): ChildProcess {
   return proc;
 }
 
+async function runViaApi(options: ClaudeRunnerOptions, emitter: EventEmitter): Promise<ClaudeResponse> {
+  const config = getConfig();
+  const startTime = Date.now();
+  const timeout = options.timeout || config.claude.timeout;
+
+  const messages: Array<{ role: string; content: string }> = [
+    { role: 'user', content: options.prompt },
+  ];
+
+  const body: Record<string, unknown> = {
+    model: config.claude.model || 'claude-sonnet-4-20250514',
+    max_tokens: 8192,
+    messages,
+  };
+
+  if (options.systemPrompt) {
+    body.system = options.systemPrompt;
+  }
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': config.claude.apiKey!,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(timeout),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Anthropic API error ${response.status}: ${errorText}`);
+  }
+
+  const data = await response.json() as {
+    content: Array<{ type: string; text?: string }>;
+    usage?: { input_tokens: number; output_tokens: number };
+  };
+
+  const content = data.content
+    .filter((c: { type: string }) => c.type === 'text')
+    .map((c: { text?: string }) => c.text || '')
+    .join('');
+
+  emitter.emit('content', content);
+
+  return {
+    content,
+    toolCalls: [],
+    toolResults: [],
+    durationMs: Date.now() - startTime,
+  };
+}
+
 export class ClaudeRunner extends EventEmitter {
   async run(options: ClaudeRunnerOptions): Promise<ClaudeResponse> {
     const config = getConfig();
+
+    // Use API mode if configured
+    if (config.claude.mode === 'api' && config.claude.apiKey) {
+      return runViaApi(options, this);
+    }
+
     const timeout = options.timeout || config.claude.timeout;
     const startTime = Date.now();
 

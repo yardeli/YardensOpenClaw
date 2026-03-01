@@ -29,3 +29,4 @@ coverage/
 # Build artifacts
 *.js.map
 *.d.ts.map
+supabase/.temp/

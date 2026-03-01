@@ -190,7 +190,7 @@ export interface ApiResponse<T = unknown> {
 // Config
 export interface ClawfreeConfig {
   gateway: { port: number; host: string; secret?: string };
-  claude: { cliPath: string; timeout: number; maxConcurrent: number };
+  claude: { cliPath: string; timeout: number; maxConcurrent: number; apiKey?: string; model?: string; mode?: 'cli' | 'api' };
   supabase?: { url: string; anonKey: string; serviceKey?: string };
   workspace: { dir: string };
   memory: { dir: string; syncEnabled: boolean };
