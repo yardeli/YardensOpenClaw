@@ -1,0 +1,24 @@
+{
+  "name": "clawfree",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Open-source AI agent platform powered by Claude CLI",
+  "license": "MIT",
+  "scripts": {
+    "dev:gateway": "pnpm --filter @clawfree/gateway dev",
+    "dev:dashboard": "pnpm --filter @clawfree/dashboard dev",
+    "build": "pnpm -r build",
+    "build:shared": "pnpm --filter @clawfree/shared build",
+    "build:gateway": "pnpm --filter @clawfree/gateway build",
+    "build:dashboard": "pnpm --filter @clawfree/dashboard build",
+    "build:cli": "pnpm --filter @clawfree/cli build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "clean": "pnpm -r clean"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}

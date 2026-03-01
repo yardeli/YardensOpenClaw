@@ -1,0 +1,31 @@
+node_modules/
+dist/
+.next/
+.turbo/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Coverage
+coverage/
+
+# Build artifacts
+*.js.map
+*.d.ts.map
