@@ -43,50 +43,109 @@ export default function AnalyticsPage() {
   );
 
   const statCards = [
-    { label: 'Sessions', value: totals.sessions, icon: BarChart3, color: 'text-brand-400' },
-    { label: 'Messages', value: totals.messages, icon: MessageSquare, color: 'text-green-400' },
-    { label: 'Tool Calls', value: totals.toolCalls, icon: Zap, color: 'text-purple-400' },
-    { label: 'Errors', value: totals.errors, icon: AlertTriangle, color: 'text-red-400' },
+    { label: 'Sessions', value: totals.sessions, icon: BarChart3, color: 'text-brand-400', bgColor: 'bg-brand-500/10' },
+    { label: 'Messages', value: totals.messages, icon: MessageSquare, color: 'text-green-400', bgColor: 'bg-green-500/10' },
+    { label: 'Tool Calls', value: totals.toolCalls, icon: Zap, color: 'text-purple-400', bgColor: 'bg-purple-500/10' },
+    { label: 'Errors', value: totals.errors, icon: AlertTriangle, color: 'text-red-400', bgColor: 'bg-red-500/10' },
   ];
 
-  return (
-    <div className="p-6">
-      <h1 className="mb-6 text-xl font-bold">Analytics</h1>
+  const formatDateLabel = (dateStr: string) => {
+    const date = new Date(dateStr + 'T00:00:00');
+    return date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  };
 
-      <div className="mb-6 grid grid-cols-4 gap-4">
-        {statCards.map(stat => {
-          const Icon = stat.icon;
-          return (
-            <div key={stat.label} className="card">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-400">{stat.label}</span>
-                <Icon size={18} className={stat.color} />
-              </div>
-              <p className="text-2xl font-bold">{stat.value}</p>
-              <p className="text-xs text-gray-500">Last 7 days</p>
-            </div>
-          );
-        })}
+  return (
+    <div>
+      <div className="page-header">
+        <div>
+          <h1 className="text-xl font-bold">Analytics</h1>
+          <p className="text-sm text-gray-400 mt-0.5">7 Day Summary</p>
+        </div>
       </div>
 
-      <div className="card">
-        <h2 className="mb-4 font-medium">Messages Over Time</h2>
+      <div className="p-6 space-y-6">
         {loading ? (
-          <div className="h-64 flex items-center justify-center text-gray-500">Loading...</div>
+          <>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="skeleton h-28 w-full" />
+              ))}
+            </div>
+            <div className="skeleton h-80 w-full" />
+          </>
         ) : (
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={metrics}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-              <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#9ca3af' }} />
-              <YAxis tick={{ fontSize: 12, fill: '#9ca3af' }} />
-              <Tooltip
-                contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: '8px' }}
-                labelStyle={{ color: '#9ca3af' }}
-              />
-              <Area type="monotone" dataKey="messagesCount" stroke="#0c8bff" fill="#0c8bff" fillOpacity={0.1} name="Messages" />
-              <Area type="monotone" dataKey="toolCallsCount" stroke="#a855f7" fill="#a855f7" fillOpacity={0.1} name="Tool Calls" />
-            </AreaChart>
-          </ResponsiveContainer>
+          <>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {statCards.map((stat, i) => {
+                const Icon = stat.icon;
+                return (
+                  <div
+                    key={stat.label}
+                    className="card-static animate-fade-in"
+                    style={{ animationDelay: `${i * 80}ms`, animationFillMode: 'both' }}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm text-gray-400 font-medium">{stat.label}</span>
+                      <div className={`p-2 rounded-lg ${stat.bgColor}`}>
+                        <Icon size={16} className={stat.color} />
+                      </div>
+                    </div>
+                    <p className="text-3xl font-bold tracking-tight">{stat.value.toLocaleString()}</p>
+                    <p className="text-xs text-gray-500 mt-1">Last 7 days</p>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="card-static">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="font-semibold">Messages Over Time</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">Messages and tool calls per day</p>
+                </div>
+                <span className="badge-blue">7 Day Summary</span>
+              </div>
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={metrics}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fontSize: 12, fill: '#9ca3af' }}
+                    tickFormatter={formatDateLabel}
+                  />
+                  <YAxis tick={{ fontSize: 12, fill: '#9ca3af' }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#111827',
+                      border: '1px solid #374151',
+                      borderRadius: '8px',
+                      boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
+                    }}
+                    labelStyle={{ color: '#9ca3af' }}
+                    labelFormatter={formatDateLabel}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="messagesCount"
+                    stroke="#0c8bff"
+                    fill="#0c8bff"
+                    fillOpacity={0.1}
+                    strokeWidth={2}
+                    name="Messages"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="toolCallsCount"
+                    stroke="#a855f7"
+                    fill="#a855f7"
+                    fillOpacity={0.1}
+                    strokeWidth={2}
+                    name="Tool Calls"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </>
         )}
       </div>
     </div>
