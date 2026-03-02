@@ -12,7 +12,7 @@ export const onboardCommand = new Command('onboard')
   .description('Set up ClawFree for the first time')
   .action(async () => {
     // Dynamic import of @clack/prompts (ESM)
-    const { intro, outro, text, select, confirm, spinner, note, cancel, isCancel } = await import('@clack/prompts');
+    const { intro, outro, text, confirm, spinner, note, cancel, isCancel } = await import('@clack/prompts');
 
     intro(chalk.cyan.bold('ClawFree Setup'));
 
@@ -24,17 +24,20 @@ export const onboardCommand = new Command('onboard')
     }
     console.log(chalk.green(`  ✓ Node.js ${process.versions.node}`));
 
-    // 2. Check Claude CLI
+    // 2. Check Claude CLI (required — no API fallback)
     const claudeResult = findClaudeCli();
     if (claudeResult.found) {
       console.log(chalk.green(`  ✓ Claude CLI found${claudeResult.version ? ` (${claudeResult.version})` : ''}`));
     } else {
       note(
-        'Claude CLI is required for zero-cost mode.\n' +
-        'Install it: npm install -g @anthropic-ai/claude-code\n\n' +
-        'You can still use API mode with an ANTHROPIC_API_KEY.',
+        'Claude CLI is required.\n' +
+        'Install it: npm install -g @anthropic-ai/claude-code\n' +
+        'Then authenticate: claude --login\n\n' +
+        'ClawFree uses your Claude Pro/Max subscription — zero API cost.',
         'Claude CLI Not Found'
       );
+      console.log(chalk.yellow('\n  Please install Claude CLI and re-run `clawfree onboard`.\n'));
+      process.exit(1);
     }
 
     // 3. Create directories
@@ -74,31 +77,7 @@ export const onboardCommand = new Command('onboard')
     if (isCancel(portResult)) { cancel('Setup cancelled.'); process.exit(0); }
     const port = parseInt(portResult as string, 10);
 
-    // 6. Ask Claude mode
-    const modeResult = await select({
-      message: 'How should ClawFree connect to Claude?',
-      options: [
-        { value: 'cli', label: 'Claude CLI (zero cost — uses your Claude Pro/Max subscription)' },
-        { value: 'api', label: 'Anthropic API (requires API key)' },
-      ],
-    });
-    if (isCancel(modeResult)) { cancel('Setup cancelled.'); process.exit(0); }
-    const mode = modeResult as 'cli' | 'api';
-
-    let apiKey: string | undefined;
-    if (mode === 'api') {
-      const keyResult = await text({
-        message: 'Anthropic API key:',
-        placeholder: 'sk-ant-...',
-        validate: (val) => {
-          if (!val || val.trim().length === 0) return 'API key is required for API mode';
-        },
-      });
-      if (isCancel(keyResult)) { cancel('Setup cancelled.'); process.exit(0); }
-      apiKey = keyResult as string;
-    }
-
-    // 7. Optional Supabase config
+    // 6. Optional Supabase config
     let supabaseUrl: string | undefined;
     let supabaseAnonKey: string | undefined;
 
@@ -115,18 +94,17 @@ export const onboardCommand = new Command('onboard')
       if (!isCancel(keyResult)) supabaseAnonKey = keyResult as string;
     }
 
-    // 8. Write .env
+    // 7. Write .env
     const envPath = resolve(CLAWFREE_DIR, '.env');
-    const envContent = DEFAULT_ENV_TEMPLATE({ port, mode, apiKey, supabaseUrl, supabaseAnonKey });
+    const envContent = DEFAULT_ENV_TEMPLATE({ port, supabaseUrl, supabaseAnonKey });
     writeFileSync(envPath, envContent, 'utf-8');
     console.log(chalk.green(`  ✓ Wrote ~/.clawfree/.env`));
 
-    // 9. Quick health test
+    // 8. Quick health test
     const s = spinner();
     s.start('Running health check...');
 
     try {
-      // Set env vars for the in-process test
       process.env.GATEWAY_PORT = String(port);
       process.env.GATEWAY_HOST = '127.0.0.1';
 
@@ -155,7 +133,7 @@ export const onboardCommand = new Command('onboard')
       s.stop(chalk.yellow(`Health check skipped: ${err instanceof Error ? err.message : 'unknown error'}`));
     }
 
-    // 10. Done!
+    // 9. Done!
     outro(chalk.green.bold('Setup complete!'));
 
     console.log('');

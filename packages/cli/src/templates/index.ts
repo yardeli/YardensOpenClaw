@@ -17,8 +17,6 @@ You are a helpful AI assistant powered by Claude.
 
 export const DEFAULT_ENV_TEMPLATE = (options: {
   port: number;
-  mode: 'cli' | 'api';
-  apiKey?: string;
   supabaseUrl?: string;
   supabaseAnonKey?: string;
 }) => {
@@ -27,13 +25,9 @@ export const DEFAULT_ENV_TEMPLATE = (options: {
     `GATEWAY_PORT=${options.port}`,
     'GATEWAY_HOST=0.0.0.0',
     '',
-    '# Claude Mode: "cli" (uses Claude CLI, zero API cost) or "api" (uses Anthropic API)',
-    `CLAUDE_MODE=${options.mode}`,
+    '# Claude CLI path (uses your Claude Pro/Max subscription — zero API cost)',
+    'CLAUDE_CLI_PATH=claude',
   ];
-
-  if (options.mode === 'api' && options.apiKey) {
-    lines.push(`ANTHROPIC_API_KEY=${options.apiKey}`);
-  }
 
   if (options.supabaseUrl) {
     lines.push('', '# Supabase (optional — enables cloud sync)');
