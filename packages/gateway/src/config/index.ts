@@ -15,9 +15,6 @@ export function loadConfig(): ClawfreeConfig {
       cliPath: process.env.CLAUDE_CLI_PATH || 'claude',
       timeout: parseInt(process.env.CLAUDE_TIMEOUT || '120000', 10),
       maxConcurrent: parseInt(process.env.CLAUDE_MAX_CONCURRENT || '3', 10),
-      apiKey: process.env.ANTHROPIC_API_KEY,
-      model: process.env.CLAUDE_MODEL || 'claude-sonnet-4-20250514',
-      mode: (process.env.CLAUDE_MODE as 'cli' | 'api') || (process.env.ANTHROPIC_API_KEY ? 'api' : 'cli'),
     },
     supabase: process.env.SUPABASE_URL
       ? {

@@ -187,10 +187,10 @@ export interface ApiResponse<T = unknown> {
   meta?: { total?: number; page?: number; limit?: number };
 }
 
-// Config
+// Config — Claude CLI only, no API tokens required
 export interface ClawfreeConfig {
   gateway: { port: number; host: string; secret?: string };
-  claude: { cliPath: string; timeout: number; maxConcurrent: number; apiKey?: string; model?: string; mode?: 'cli' | 'api' };
+  claude: { cliPath: string; timeout: number; maxConcurrent: number };
   supabase?: { url: string; anonKey: string; serviceKey?: string };
   workspace: { dir: string };
   memory: { dir: string; syncEnabled: boolean };
