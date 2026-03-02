@@ -19,6 +19,7 @@ import { Scheduler } from '../scheduler/index.js';
 import { listTools, getExecutions } from '../tools/index.js';
 import { getAuditLog, getPermissionRules } from '../security/index.js';
 import { getConfig } from '../config/index.js';
+import { TelegramAdapter } from '../channels/telegram.js';
 
 export async function createServer() {
   const config = getConfig();
@@ -35,6 +36,17 @@ export async function createServer() {
   // Load skills on startup
   await skillLoader.load();
   await memoryManager.load();
+
+  // Start channel adapters
+  let telegramAdapter: TelegramAdapter | undefined;
+  if (config.telegram?.token) {
+    try {
+      telegramAdapter = new TelegramAdapter(agentLoop, config.telegram.token, config.telegram);
+      await telegramAdapter.start();
+    } catch (err) {
+      console.error('[Telegram] Failed to start adapter:', err instanceof Error ? err.message : err);
+    }
+  }
 
   // WebSocket connections
   const wsClients = new Set<WebSocket>();
@@ -248,5 +260,5 @@ export async function createServer() {
     return { success: true, data: getPermissionRules() };
   });
 
-  return { app, agentLoop, scheduler };
+  return { app, agentLoop, scheduler, telegramAdapter };
 }

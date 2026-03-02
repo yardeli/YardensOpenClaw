@@ -11,15 +11,40 @@ interface TelegramUpdate {
   };
 }
 
+export interface TelegramChannelConfig {
+  dmPolicy?: 'all' | 'allowlist';
+  /** List of Telegram user/chat IDs allowed to message the bot */
+  allowFrom?: string[];
+  /** @deprecated Use allowFrom instead */
+  dmAllowlist?: string[];
+}
+
 export class TelegramAdapter extends ChannelAdapter {
   readonly type: ChannelType = 'telegram';
   private botToken: string;
   private polling = false;
   private offset = 0;
+  private dmPolicy: 'all' | 'allowlist';
+  private allowFrom: Set<string>;
 
-  constructor(agentLoop: ConstructorParameters<typeof ChannelAdapter>[0], botToken: string) {
+  constructor(
+    agentLoop: ConstructorParameters<typeof ChannelAdapter>[0],
+    botToken: string,
+    config: TelegramChannelConfig = {}
+  ) {
     super(agentLoop);
     this.botToken = botToken;
+    this.dmPolicy = config.dmPolicy ?? 'all';
+
+    // Support deprecated dmAllowlist as a fallback for allowFrom
+    const allowFrom = config.allowFrom ?? config.dmAllowlist ?? [];
+    this.allowFrom = new Set(allowFrom.map(String));
+
+    if (this.dmPolicy === 'allowlist' && this.allowFrom.size === 0) {
+      throw new Error(
+        'channels.telegram.allowFrom: channels.telegram.dmPolicy="allowlist" requires channels.telegram.allowFrom to contain at least one sender ID'
+      );
+    }
   }
 
   private get apiUrl(): string {
@@ -28,7 +53,10 @@ export class TelegramAdapter extends ChannelAdapter {
 
   async start(): Promise<void> {
     this.polling = true;
-    console.log('[Telegram] Bot started polling');
+    const policyInfo = this.dmPolicy === 'allowlist'
+      ? ` (allowlist: ${[...this.allowFrom].join(', ')})`
+      : '';
+    console.log(`[Telegram] Bot started polling (dmPolicy=${this.dmPolicy}${policyInfo})`);
     this.poll();
   }
 
@@ -64,10 +92,17 @@ export class TelegramAdapter extends ChannelAdapter {
   }
 
   private async handleMessage(chatId: number, text: string): Promise<void> {
+    const senderId = String(chatId);
+
+    if (this.dmPolicy === 'allowlist' && !this.allowFrom.has(senderId)) {
+      console.log(`[Telegram] Blocked message from ${senderId} (not in allowFrom list)`);
+      return;
+    }
+
     try {
       const response = await this.agentLoop.processMessage(text, {
         channel: 'telegram',
-        userId: String(chatId),
+        userId: senderId,
       });
 
       await this.sendMessage(chatId, response.content);

@@ -75,3 +75,27 @@ export const installSkillSchema = z.object({
   url: z.string().url().optional(),
   content: z.string().optional(),
 }).refine(data => data.url || data.content, { message: 'Either url or content is required' });
+
+// Telegram channel config schema — accepts the deprecated dmAllowlist field and maps it to allowFrom
+export const telegramChannelConfigSchema = z.object({
+  token: z.string().optional(),
+  dmPolicy: z.enum(['all', 'allowlist']).default('all'),
+  allowFrom: z.array(z.string()).default([]),
+  /** @deprecated Use allowFrom instead */
+  dmAllowlist: z.array(z.string()).optional(),
+}).transform(data => {
+  // Migrate deprecated dmAllowlist → allowFrom
+  if (data.dmAllowlist && data.dmAllowlist.length > 0 && data.allowFrom.length === 0) {
+    data.allowFrom = data.dmAllowlist;
+  }
+  const { dmAllowlist: _, ...rest } = data;
+  return rest;
+}).refine(
+  data => !(data.dmPolicy === 'allowlist' && data.allowFrom.length === 0),
+  {
+    message: 'channels.telegram.dmPolicy="allowlist" requires channels.telegram.allowFrom to contain at least one sender ID',
+    path: ['allowFrom'],
+  }
+);
+
+export type TelegramChannelConfig = z.infer<typeof telegramChannelConfigSchema>;
