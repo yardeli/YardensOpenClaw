@@ -32,7 +32,7 @@ export const onboardCommand = new Command('onboard')
       note(
         'Claude CLI is required.\n' +
         'Install it: npm install -g @anthropic-ai/claude-code\n' +
-        'Then authenticate: claude --login\n\n' +
+        'Then run `claude` once to authenticate via browser OAuth.\n\n' +
         'ClawFree uses your Claude Pro/Max subscription — zero API cost.',
         'Claude CLI Not Found'
       );

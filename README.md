@@ -32,7 +32,8 @@ ClawFree spawns the official `claude` CLI tool (`claude -p`) under the hood. Thi
 - Claude CLI installed and authenticated:
   ```bash
   npm install -g @anthropic-ai/claude-code
-  claude --login
+  # Run `claude` once — it opens a browser to authenticate with your Claude account
+  claude
   ```
 
 ## Quick Start
