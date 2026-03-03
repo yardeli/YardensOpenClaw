@@ -50,7 +50,7 @@ export function Sidebar() {
           </div>
           <div>
             <span className="text-base font-bold tracking-tight">JasonBot</span>
-            <p className="text-[10px] text-gray-500 -mt-0.5">AI Agent Platform</p>
+            <p className="text-[10px] text-gray-500 -mt-0.5">Your personal Jason Forsythe, just less annoying</p>
           </div>
         </div>
         <button onClick={() => setOpen(false)} className="lg:hidden text-gray-400 hover:text-gray-200">
