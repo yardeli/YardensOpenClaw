@@ -49,7 +49,7 @@ export function Sidebar() {
             CF
           </div>
           <div>
-            <span className="text-base font-bold tracking-tight">ClawFree</span>
+            <span className="text-base font-bold tracking-tight">JasonBot</span>
             <p className="text-[10px] text-gray-500 -mt-0.5">AI Agent Platform</p>
           </div>
         </div>
