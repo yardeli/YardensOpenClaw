@@ -46,7 +46,7 @@ export function Sidebar() {
       <div className="flex items-center justify-between px-5 py-4">
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 text-white font-bold text-sm shadow-lg shadow-brand-600/20">
-            CF
+            JB
           </div>
           <div>
             <span className="text-base font-bold tracking-tight">JasonBot</span>
